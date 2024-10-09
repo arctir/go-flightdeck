@@ -3,7 +3,7 @@ package client
 import (
 	"net/http"
 
-	apiv1 "github.com/arctir/go-arctir/pkg/api/v1"
+	apiv1 "github.com/arctir/go-flightdeck/pkg/api/v1"
 )
 
 func OidcClient(config Config) (*http.Client, error) {

@@ -3,7 +3,6 @@ module github.com/arctir/go-flightdeck
 go 1.21.0
 
 require (
-	github.com/arctir/go-arctir v1.0.0-pre.18
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/oapi-codegen/runtime v1.1.1
