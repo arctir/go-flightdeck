@@ -1,0 +1,8 @@
+package: v1
+generate:
+  client: true
+  models: true
+output-options:
+  skip-prune: true
+compatibility:
+  disable-flatten-additional-properties: false

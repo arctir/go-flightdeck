@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: go-flightdeck
+  description: Go bindings for the Flightdeck API 
+spec:
+  type: library 
+  lifecycle: production
+  owner: arctir-core
+  system: arctir-runtime
+  dependsOn:
+    - api:default/flightdeck-api
+  subcomponentOf: component:default/flightdeck
+  consumesApis:
+    - flightdeck-api

@@ -1,0 +1,46 @@
+name: generate
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The upstream tag
+        required: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.ARCTIR_GH_ACTIONS_TOKEN }}
+
+      - name: Update the api submodule
+        run: |
+          cd api;
+          git fetch --tags;
+          git checkout tags/${{ inputs.tag }};
+        env:
+          GITHUB_TOKEN: ${{ secrets.ARCTIR_GH_ACTIONS_TOKEN }}
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "^1.21"
+
+      - name: Generate the client
+        run: make
+
+      - name: Tag package version
+        run: |
+          git config --global user.email "gitbot@arctir.com";
+          git config --global user.name "Arctir Bot";
+          git add api pkg go.*;
+          git commit api pkg go.* -m "Tracking upstream API version ${{ inputs.tag }}";
+          git status;
+          git tag  "${{ inputs.tag }}";
+          git push origin --tags;
