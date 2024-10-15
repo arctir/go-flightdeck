@@ -52,6 +52,12 @@ const (
 	LocationCatalogProviderInputAllowUser      LocationCatalogProviderInputAllow = "User"
 )
 
+// Defines values for PluginDefinitionFrontendEntityType.
+const (
+	Card    PluginDefinitionFrontendEntityType = "Card"
+	Content PluginDefinitionFrontendEntityType = "Content"
+)
+
 // Defines values for PortalProxyCredentials.
 const (
 	PortalProxyCredentialsDangerouslyAllowUnauthenticated PortalProxyCredentials = "dangerously-allow-unauthenticated"
@@ -645,11 +651,15 @@ type PluginDefinitionFrontendEntities = []PluginDefinitionFrontendEntity
 
 // PluginDefinitionFrontendEntity defines model for PluginDefinitionFrontendEntity.
 type PluginDefinitionFrontendEntity struct {
-	Description string  `json:"description"`
-	Id          *string `json:"id,omitempty"`
-	Path        string  `json:"path"`
-	Title       string  `json:"title"`
+	Description string                             `json:"description"`
+	Id          string                             `json:"id"`
+	Path        string                             `json:"path"`
+	Title       string                             `json:"title"`
+	Type        PluginDefinitionFrontendEntityType `json:"type"`
 }
+
+// PluginDefinitionFrontendEntityType defines model for PluginDefinitionFrontendEntity.Type.
+type PluginDefinitionFrontendEntityType string
 
 // PluginDefinitionInput defines model for PluginDefinitionInput.
 type PluginDefinitionInput struct {
@@ -716,7 +726,7 @@ type PortalProxy struct {
 	ChangeOrigin   *bool                     `json:"changeOrigin,omitempty"`
 	CreatedAt      time.Time                 `json:"createdAt"`
 	Credentials    *PortalProxyCredentials   `json:"credentials,omitempty"`
-	Endpoint       *string                   `json:"endpoint,omitempty"`
+	Endpoint       string                    `json:"endpoint"`
 	HttpHeaders    *[]PortalProxyHeader      `json:"httpHeaders,omitempty"`
 	Id             openapi_types.UUID        `json:"id"`
 	Name           string                    `json:"name"`
@@ -741,7 +751,7 @@ type PortalProxyInput struct {
 	AllowedMethods *[]string                    `json:"allowedMethods,omitempty"`
 	ChangeOrigin   *bool                        `json:"changeOrigin,omitempty"`
 	Credentials    *PortalProxyInputCredentials `json:"credentials,omitempty"`
-	Endpoint       *string                      `json:"endpoint,omitempty"`
+	Endpoint       string                       `json:"endpoint"`
 	HttpHeaders    *[]PortalProxyHeader         `json:"httpHeaders,omitempty"`
 	Name           string                       `json:"name"`
 	PathRewrite    *[]PortalProxyPathRewrite    `json:"pathRewrite,omitempty"`
