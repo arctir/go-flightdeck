@@ -16,6 +16,10 @@ type Config struct {
 }
 
 func ReadConfig(path string) (*Config, error) {
+	if _, err := os.Stat(path); err != nil {
+		return nil, err
+	}
+
 	var config Config
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
