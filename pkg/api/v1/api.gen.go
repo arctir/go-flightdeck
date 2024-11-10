@@ -52,6 +52,12 @@ const (
 	LocationCatalogProviderInputAllowUser      LocationCatalogProviderInputAllow = "User"
 )
 
+// Defines values for PluginDefinitionFrontendExtensionType.
+const (
+	Card    PluginDefinitionFrontendExtensionType = "Card"
+	Content PluginDefinitionFrontendExtensionType = "Content"
+)
+
 // Defines values for PortalProxyCredentials.
 const (
 	PortalProxyCredentialsDangerouslyAllowUnauthenticated PortalProxyCredentials = "dangerously-allow-unauthenticated"
@@ -83,7 +89,7 @@ type AuthProvider_ProviderConfig struct {
 
 // AuthProviderConfig defines model for AuthProviderConfig.
 type AuthProviderConfig struct {
-	ConfigType string `json:"configType"`
+	ConfigType string `json:"configType" tfsdk:"-"`
 }
 
 // AuthProviderInput defines model for AuthProviderInput.
@@ -202,6 +208,47 @@ type ConnectionsListResponse struct {
 	Total    int           `json:"total"`
 }
 
+// EntityPageCardSpec defines model for EntityPageCardSpec.
+type EntityPageCardSpec struct {
+	Config  *map[string]interface{} `json:"config" tfsdk:"config"`
+	Filters *[]string               `json:"filters" tfsdk:"filters"`
+	Path    string                  `json:"path" tfsdk:"path"`
+}
+
+// EntityPageContentSpec defines model for EntityPageContentSpec.
+type EntityPageContentSpec struct {
+	Config  *map[string]interface{} `json:"config" tfsdk:"config"`
+	Filters *[]string               `json:"filters" tfsdk:"filters"`
+	Path    string                  `json:"path" tfsdk:"path"`
+}
+
+// EntityPageLayout defines model for EntityPageLayout.
+type EntityPageLayout struct {
+	Active         *bool                    `json:"active,omitempty"`
+	CardOrder      *[]EntityPageCardSpec    `json:"cardOrder"`
+	ContentOrder   *[]EntityPageContentSpec `json:"contentOrder"`
+	CreatedAt      time.Time                `json:"createdAt"`
+	Id             openapi_types.UUID       `json:"id"`
+	Name           string                   `json:"name"`
+	OrganizationId openapi_types.UUID       `json:"organizationId"`
+	PortalName     string                   `json:"portalName"`
+}
+
+// EntityPageLayoutInput defines model for EntityPageLayoutInput.
+type EntityPageLayoutInput struct {
+	Active       *bool                    `json:"active,omitempty"`
+	CardOrder    *[]EntityPageCardSpec    `json:"cardOrder"`
+	ContentOrder *[]EntityPageContentSpec `json:"contentOrder"`
+	Name         string                   `json:"name"`
+}
+
+// EntityPageLayoutsListResponse defines model for EntityPageLayoutsListResponse.
+type EntityPageLayoutsListResponse struct {
+	Items    *[]EntityPageLayout `json:"items,omitempty"`
+	PageInfo PageInfo            `json:"pageInfo"`
+	Total    int                 `json:"total"`
+}
+
 // GithubAppIntegration defines model for GithubAppIntegration.
 type GithubAppIntegration struct {
 	// AllowedInstallationOwners List of installation owners allowed to be used by this GitHub app. The GitHub UI does not provide a way to list the installations.
@@ -229,21 +276,21 @@ type GithubAppIntegration struct {
 
 // GithubAuthProvider defines model for GithubAuthProvider.
 type GithubAuthProvider struct {
-	AdditionalScopes      *[]string `json:"additionalScopes,omitempty" tfsdk:"additional_scopes"`
-	CallbackUrl           *string   `json:"callbackUrl,omitempty" tfsdk:"callback_url"`
+	AdditionalScopes      *[]string `json:"additionalScopes" tfsdk:"additional_scopes"`
+	CallbackUrl           *string   `json:"callbackUrl" tfsdk:"callback_url"`
 	ClientId              string    `json:"clientId" tfsdk:"client_id"`
 	ClientSecret          *string   `json:"clientSecret,omitempty" tfsdk:"client_secret"`
-	ConfigType            string    `json:"configType"`
-	EnterpriseInstanceUrl *string   `json:"enterpriseInstanceUrl,omitempty" tfsdk:"enterprise_instance_url"`
+	ConfigType            string    `json:"configType" tfsdk:"-"`
+	EnterpriseInstanceUrl *string   `json:"enterpriseInstanceUrl" tfsdk:"enterprise_instance_url"`
 }
 
 // GithubAuthProviderInput defines model for GithubAuthProviderInput.
 type GithubAuthProviderInput struct {
-	AdditionalScopes      *[]string `json:"additionalScopes,omitempty" tfsdk:"additional_scopes"`
-	CallbackUrl           *string   `json:"callbackUrl,omitempty" tfsdk:"callback_url"`
+	AdditionalScopes      *[]string `json:"additionalScopes" tfsdk:"additional_scopes"`
+	CallbackUrl           *string   `json:"callbackUrl" tfsdk:"callback_url"`
 	ClientId              string    `json:"clientId" tfsdk:"client_id"`
 	ClientSecret          *string   `json:"clientSecret,omitempty" tfsdk:"client_secret"`
-	EnterpriseInstanceUrl *string   `json:"enterpriseInstanceUrl,omitempty" tfsdk:"enterprise_instance_url"`
+	EnterpriseInstanceUrl *string   `json:"enterpriseInstanceUrl" tfsdk:"enterprise_instance_url"`
 }
 
 // GithubCatalogProvider defines model for GithubCatalogProvider.
@@ -346,7 +393,7 @@ type GitlabAuthProvider struct {
 	CallbackUrl      *string   `json:"callbackUrl,omitempty"`
 	ClientId         string    `json:"clientId"`
 	ClientSecret     *string   `json:"clientSecret,omitempty"`
-	ConfigType       string    `json:"configType"`
+	ConfigType       string    `json:"configType" tfsdk:"-"`
 }
 
 // GitlabAuthProviderInput defines model for GitlabAuthProviderInput.
@@ -423,7 +470,7 @@ type GoogleAuthProvider struct {
 	CallbackUrl      *string   `json:"callbackUrl,omitempty"`
 	ClientId         string    `json:"clientId"`
 	ClientSecret     *string   `json:"clientSecret,omitempty"`
-	ConfigType       string    `json:"configType"`
+	ConfigType       string    `json:"configType" tfsdk:"-"`
 }
 
 // GoogleAuthProviderInput defines model for GoogleAuthProviderInput.
@@ -583,37 +630,28 @@ type PageInfo struct {
 
 // PluginConfiguration defines model for PluginConfiguration.
 type PluginConfiguration struct {
-	ConfigValue *map[string]interface{} `json:"configValue,omitempty"`
-	CreatedAt   time.Time               `json:"createdAt"`
-	Definition  struct {
-		Name    string `json:"name"`
-		Version int    `json:"version"`
-	} `json:"definition"`
-	Enabled              bool                                       `json:"enabled"`
-	FrontendEntityConfig *PluginConfigurationFrontendEntitiesConfig `json:"frontendEntityConfig,omitempty"`
-	IconName             string                                     `json:"iconName"`
-	Id                   openapi_types.UUID                         `json:"id"`
+	BackendConfig  *map[string]interface{}           `json:"backendConfig,omitempty"`
+	CreatedAt      time.Time                         `json:"createdAt"`
+	Definition     PluginConfigurationDefinitionSpec `json:"definition"`
+	Enabled        bool                              `json:"enabled"`
+	FrontendConfig *map[string]interface{}           `json:"frontendConfig,omitempty"`
+	Id             openapi_types.UUID                `json:"id"`
+	OrganizationId openapi_types.UUID                `json:"organizationId"`
+	PortalName     string                            `json:"portalName"`
 }
 
-// PluginConfigurationFrontendEntitiesConfig defines model for PluginConfigurationFrontendEntitiesConfig.
-type PluginConfigurationFrontendEntitiesConfig = []PluginConfigurationFrontendEntityConfig
-
-// PluginConfigurationFrontendEntityConfig defines model for PluginConfigurationFrontendEntityConfig.
-type PluginConfigurationFrontendEntityConfig struct {
-	Config  *map[string]interface{} `json:"config,omitempty"`
-	Enabled bool                    `json:"enabled"`
-	Path    string                  `json:"path"`
+// PluginConfigurationDefinitionSpec defines model for PluginConfigurationDefinitionSpec.
+type PluginConfigurationDefinitionSpec struct {
+	Name            string `json:"name"`
+	PortalVersionId string `json:"portalVersionId"`
 }
 
 // PluginConfigurationInput defines model for PluginConfigurationInput.
 type PluginConfigurationInput struct {
-	ConfigValue *map[string]interface{} `json:"configValue,omitempty"`
-	Definition  struct {
-		Name    string `json:"name"`
-		Version int    `json:"version"`
-	} `json:"definition"`
-	Enabled              bool                                       `json:"enabled"`
-	FrontendEntityConfig *PluginConfigurationFrontendEntitiesConfig `json:"frontendEntityConfig,omitempty"`
+	BackendConfig  *map[string]interface{}           `json:"backendConfig,omitempty"`
+	Definition     PluginConfigurationDefinitionSpec `json:"definition"`
+	Enabled        bool                              `json:"enabled"`
+	FrontendConfig *map[string]interface{}           `json:"frontendConfig,omitempty"`
 }
 
 // PluginConfigurationsListResponse defines model for PluginConfigurationsListResponse.
@@ -625,45 +663,52 @@ type PluginConfigurationsListResponse struct {
 
 // PluginDefinition defines model for PluginDefinition.
 type PluginDefinition struct {
-	Backend          bool                              `json:"backend"`
-	ConfigSchema     *map[string]interface{}           `json:"configSchema,omitempty"`
-	ConfigTemplate   *string                           `json:"configTemplate,omitempty"`
-	CreatedAt        time.Time                         `json:"createdAt"`
-	Description      string                            `json:"description"`
-	DisplayName      string                            `json:"displayName"`
-	Frontend         bool                              `json:"frontend"`
-	FrontendEntities *PluginDefinitionFrontendEntities `json:"frontendEntities,omitempty"`
-	IconName         string                            `json:"iconName"`
-	Id               openapi_types.UUID                `json:"id"`
-	Name             string                            `json:"name"`
-	UiSchema         *map[string]interface{}           `json:"uiSchema,omitempty"`
-	Version          int                               `json:"version"`
+	Backend     *PluginDefinitionBackendSpec  `json:"backend,omitempty"`
+	CreatedAt   time.Time                     `json:"createdAt"`
+	Description string                        `json:"description"`
+	DisplayName string                        `json:"displayName"`
+	Frontend    *PluginDefinitionFrontendSpec `json:"frontend,omitempty"`
+	IconName    string                        `json:"iconName"`
+	Id          openapi_types.UUID            `json:"id"`
+	Name        string                        `json:"name"`
 }
 
-// PluginDefinitionFrontendEntities defines model for PluginDefinitionFrontendEntities.
-type PluginDefinitionFrontendEntities = []PluginDefinitionFrontendEntity
+// PluginDefinitionBackendSpec defines model for PluginDefinitionBackendSpec.
+type PluginDefinitionBackendSpec struct {
+	ConfigSchema *map[string]interface{}  `json:"configSchema,omitempty"`
+	Plugins      *[]PluginNameVersionSpec `json:"plugins,omitempty"`
+	UiSchema     *map[string]interface{}  `json:"uiSchema,omitempty"`
+}
 
-// PluginDefinitionFrontendEntity defines model for PluginDefinitionFrontendEntity.
-type PluginDefinitionFrontendEntity struct {
-	Description string  `json:"description"`
-	Id          *string `json:"id,omitempty"`
-	Path        string  `json:"path"`
-	Title       string  `json:"title"`
+// PluginDefinitionFrontendExtension defines model for PluginDefinitionFrontendExtension.
+type PluginDefinitionFrontendExtension struct {
+	ConfigSchema *map[string]interface{}               `json:"configSchema,omitempty"`
+	Description  string                                `json:"description"`
+	Path         string                                `json:"path"`
+	Title        string                                `json:"title"`
+	Type         PluginDefinitionFrontendExtensionType `json:"type"`
+	UiSchema     *map[string]interface{}               `json:"uiSchema,omitempty"`
+}
+
+// PluginDefinitionFrontendExtensionType defines model for PluginDefinitionFrontendExtension.Type.
+type PluginDefinitionFrontendExtensionType string
+
+// PluginDefinitionFrontendSpec defines model for PluginDefinitionFrontendSpec.
+type PluginDefinitionFrontendSpec struct {
+	ConfigSchema *map[string]interface{}              `json:"configSchema,omitempty"`
+	Extensions   *[]PluginDefinitionFrontendExtension `json:"extensions,omitempty"`
+	Plugins      *[]PluginNameVersionSpec             `json:"plugins,omitempty"`
+	UiSchema     *map[string]interface{}              `json:"uiSchema,omitempty"`
 }
 
 // PluginDefinitionInput defines model for PluginDefinitionInput.
 type PluginDefinitionInput struct {
-	Backend          bool                              `json:"backend"`
-	ConfigSchema     *map[string]interface{}           `json:"configSchema,omitempty"`
-	ConfigTemplate   *string                           `json:"configTemplate,omitempty"`
-	Description      string                            `json:"description"`
-	DisplayName      string                            `json:"displayName"`
-	Frontend         bool                              `json:"frontend"`
-	FrontendEntities *PluginDefinitionFrontendEntities `json:"frontendEntities,omitempty"`
-	IconName         string                            `json:"iconName"`
-	Name             string                            `json:"name"`
-	UiSchema         *map[string]interface{}           `json:"uiSchema,omitempty"`
-	Version          int                               `json:"version"`
+	Backend     *PluginDefinitionBackendSpec  `json:"backend,omitempty"`
+	Description string                        `json:"description"`
+	DisplayName string                        `json:"displayName"`
+	Frontend    *PluginDefinitionFrontendSpec `json:"frontend,omitempty"`
+	IconName    string                        `json:"iconName"`
+	Name        string                        `json:"name"`
 }
 
 // PluginDefinitionsListResponse defines model for PluginDefinitionsListResponse.
@@ -671,6 +716,12 @@ type PluginDefinitionsListResponse struct {
 	Items    *[]PluginDefinition `json:"items,omitempty"`
 	PageInfo PageInfo            `json:"pageInfo"`
 	Total    int                 `json:"total"`
+}
+
+// PluginNameVersionSpec defines model for PluginNameVersionSpec.
+type PluginNameVersionSpec struct {
+	Name    *string `json:"name,omitempty"`
+	Version *string `json:"version,omitempty"`
 }
 
 // Portal defines model for Portal.
@@ -688,7 +739,8 @@ type Portal struct {
 	TenantName       string             `json:"tenantName"`
 	Title            string             `json:"title"`
 	Url              string             `json:"url"`
-	Version          string             `json:"version"`
+	Version          *PortalVersion     `json:"version,omitempty"`
+	VersionId        string             `json:"versionId"`
 }
 
 // PortalInput defines model for PortalInput.
@@ -699,7 +751,7 @@ type PortalInput struct {
 	OrganizationName string   `json:"organizationName"`
 	TenantName       string   `json:"tenantName"`
 	Title            string   `json:"title"`
-	Version          string   `json:"version"`
+	VersionId        string   `json:"versionId"`
 }
 
 // PortalProxiesListResponse defines model for PortalProxiesListResponse.
@@ -711,17 +763,17 @@ type PortalProxiesListResponse struct {
 
 // PortalProxy defines model for PortalProxy.
 type PortalProxy struct {
-	AllowedHeaders *[]string                 `json:"allowedHeaders,omitempty"`
-	AllowedMethods *[]string                 `json:"allowedMethods,omitempty"`
+	AllowedHeaders *[]string                 `json:"allowedHeaders"`
+	AllowedMethods *[]string                 `json:"allowedMethods"`
 	ChangeOrigin   *bool                     `json:"changeOrigin,omitempty"`
 	CreatedAt      time.Time                 `json:"createdAt"`
-	Credentials    *PortalProxyCredentials   `json:"credentials,omitempty"`
-	Endpoint       *string                   `json:"endpoint,omitempty"`
-	HttpHeaders    *[]PortalProxyHeader      `json:"httpHeaders,omitempty"`
+	Credentials    PortalProxyCredentials    `json:"credentials"`
+	Endpoint       string                    `json:"endpoint"`
+	HttpHeaders    *[]PortalProxyHeader      `json:"httpHeaders"`
 	Id             openapi_types.UUID        `json:"id"`
 	Name           string                    `json:"name"`
 	OrganizationId openapi_types.UUID        `json:"organizationId"`
-	PathRewrite    *[]PortalProxyPathRewrite `json:"pathRewrite,omitempty"`
+	PathRewrite    *[]PortalProxyPathRewrite `json:"pathRewrite"`
 	PortalName     string                    `json:"portalName"`
 	Target         string                    `json:"target"`
 }
@@ -731,21 +783,21 @@ type PortalProxyCredentials string
 
 // PortalProxyHeader defines model for PortalProxyHeader.
 type PortalProxyHeader struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string `json:"name" tfsdk:"name"`
+	Value string `json:"value" tfsdk:"value"`
 }
 
 // PortalProxyInput defines model for PortalProxyInput.
 type PortalProxyInput struct {
-	AllowedHeaders *[]string                    `json:"allowedHeaders,omitempty"`
-	AllowedMethods *[]string                    `json:"allowedMethods,omitempty"`
-	ChangeOrigin   *bool                        `json:"changeOrigin,omitempty"`
-	Credentials    *PortalProxyInputCredentials `json:"credentials,omitempty"`
-	Endpoint       *string                      `json:"endpoint,omitempty"`
-	HttpHeaders    *[]PortalProxyHeader         `json:"httpHeaders,omitempty"`
-	Name           string                       `json:"name"`
-	PathRewrite    *[]PortalProxyPathRewrite    `json:"pathRewrite,omitempty"`
-	Target         string                       `json:"target"`
+	AllowedHeaders *[]string                   `json:"allowedHeaders"`
+	AllowedMethods *[]string                   `json:"allowedMethods"`
+	ChangeOrigin   *bool                       `json:"changeOrigin,omitempty"`
+	Credentials    PortalProxyInputCredentials `json:"credentials"`
+	Endpoint       string                      `json:"endpoint"`
+	HttpHeaders    *[]PortalProxyHeader        `json:"httpHeaders"`
+	Name           string                      `json:"name"`
+	PathRewrite    *[]PortalProxyPathRewrite   `json:"pathRewrite"`
+	Target         string                      `json:"target"`
 }
 
 // PortalProxyInputCredentials defines model for PortalProxyInput.Credentials.
@@ -753,14 +805,32 @@ type PortalProxyInputCredentials string
 
 // PortalProxyPathRewrite defines model for PortalProxyPathRewrite.
 type PortalProxyPathRewrite struct {
-	Dst string `json:"dst"`
-	Src string `json:"src"`
+	Dst string `json:"dst" tfsdk:"dst"`
+	Src string `json:"src" tfsdk:"src"`
 }
 
 // PortalStatus defines model for PortalStatus.
 type PortalStatus struct {
 	Detail string `json:"detail"`
 	Status string `json:"status"`
+}
+
+// PortalVersion defines model for PortalVersion.
+type PortalVersion struct {
+	CreatedAt time.Time          `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Major     int                `json:"major"`
+	Minor     int                `json:"minor"`
+	Patch     int                `json:"patch"`
+	Rev       int                `json:"rev"`
+	Version   string             `json:"version"`
+}
+
+// PortalVersionsListResponse defines model for PortalVersionsListResponse.
+type PortalVersionsListResponse struct {
+	Items    *[]PortalVersion `json:"items,omitempty"`
+	PageInfo PageInfo         `json:"pageInfo"`
+	Total    int              `json:"total"`
 }
 
 // PortalsListResponse defines model for PortalsListResponse.
@@ -888,18 +958,6 @@ type GetOrganizationsParams struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty"`
 }
 
-// GetPluginDefinitionsParams defines parameters for GetPluginDefinitions.
-type GetPluginDefinitionsParams struct {
-	// Limit Limit number of items
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// Prev The previous cursor
-	Prev *string `form:"prev,omitempty" json:"prev,omitempty"`
-
-	// Next The next cursor
-	Next *string `form:"next,omitempty" json:"next,omitempty"`
-}
-
 // GetPortalsParams defines parameters for GetPortals.
 type GetPortalsParams struct {
 	// Limit Limit number of items
@@ -938,6 +996,18 @@ type GetCatalogProvidersParams struct {
 
 // GetConnectionsParams defines parameters for GetConnections.
 type GetConnectionsParams struct {
+	// Limit Limit number of items
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Prev The previous cursor
+	Prev *string `form:"prev,omitempty" json:"prev,omitempty"`
+
+	// Next The next cursor
+	Next *string `form:"next,omitempty" json:"next,omitempty"`
+}
+
+// GetEntityPageLayoutsParams defines parameters for GetEntityPageLayouts.
+type GetEntityPageLayoutsParams struct {
 	// Limit Limit number of items
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
@@ -1020,17 +1090,35 @@ type GetTenantUsersParams struct {
 	Next *string `form:"next,omitempty" json:"next,omitempty"`
 }
 
+// GetPortalVersionsParams defines parameters for GetPortalVersions.
+type GetPortalVersionsParams struct {
+	// Limit Limit number of items
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Prev The previous cursor
+	Prev *string `form:"prev,omitempty" json:"prev,omitempty"`
+
+	// Next The next cursor
+	Next *string `form:"next,omitempty" json:"next,omitempty"`
+}
+
+// GetPortalVersionPluginDefinitionsParams defines parameters for GetPortalVersionPluginDefinitions.
+type GetPortalVersionPluginDefinitionsParams struct {
+	// Limit Limit number of items
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Prev The previous cursor
+	Prev *string `form:"prev,omitempty" json:"prev,omitempty"`
+
+	// Next The next cursor
+	Next *string `form:"next,omitempty" json:"next,omitempty"`
+}
+
 // CreateOrganizationJSONRequestBody defines body for CreateOrganization for application/json ContentType.
 type CreateOrganizationJSONRequestBody = OrganizationInput
 
 // UpdateOrganizationByIDJSONRequestBody defines body for UpdateOrganizationByID for application/json ContentType.
 type UpdateOrganizationByIDJSONRequestBody = OrganizationInput
-
-// CreatePluginDefinitionJSONRequestBody defines body for CreatePluginDefinition for application/json ContentType.
-type CreatePluginDefinitionJSONRequestBody = PluginDefinitionInput
-
-// UpdatePluginDefinitionJSONRequestBody defines body for UpdatePluginDefinition for application/json ContentType.
-type UpdatePluginDefinitionJSONRequestBody = PluginDefinitionInput
 
 // CreatePortalJSONRequestBody defines body for CreatePortal for application/json ContentType.
 type CreatePortalJSONRequestBody = PortalInput
@@ -1055,6 +1143,12 @@ type CreateConnectionJSONRequestBody = ConnectionInput
 
 // UpdateConnectionJSONRequestBody defines body for UpdateConnection for application/json ContentType.
 type UpdateConnectionJSONRequestBody = ConnectionInput
+
+// CreateEntityPageLayoutJSONRequestBody defines body for CreateEntityPageLayout for application/json ContentType.
+type CreateEntityPageLayoutJSONRequestBody = EntityPageLayoutInput
+
+// UpdateEntityPageLayoutJSONRequestBody defines body for UpdateEntityPageLayout for application/json ContentType.
+type UpdateEntityPageLayoutJSONRequestBody = EntityPageLayoutInput
 
 // CreateIntegrationJSONRequestBody defines body for CreateIntegration for application/json ContentType.
 type CreateIntegrationJSONRequestBody = IntegrationInput
@@ -2197,25 +2291,6 @@ type ClientInterface interface {
 
 	UpdateOrganizationByID(ctx context.Context, orgId string, body UpdateOrganizationByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetPluginDefinitions request
-	GetPluginDefinitions(ctx context.Context, orgId string, params *GetPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// CreatePluginDefinitionWithBody request with any body
-	CreatePluginDefinitionWithBody(ctx context.Context, orgId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	CreatePluginDefinition(ctx context.Context, orgId string, body CreatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeletePluginDefinition request
-	DeletePluginDefinition(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetPluginDefinition request
-	GetPluginDefinition(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UpdatePluginDefinitionWithBody request with any body
-	UpdatePluginDefinitionWithBody(ctx context.Context, orgId string, name string, version int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	UpdatePluginDefinition(ctx context.Context, orgId string, name string, version int, body UpdatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetPortals request
 	GetPortals(ctx context.Context, orgId string, params *GetPortalsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2291,6 +2366,25 @@ type ClientInterface interface {
 	UpdateConnectionWithBody(ctx context.Context, orgId string, portalName string, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	UpdateConnection(ctx context.Context, orgId string, portalName string, name string, body UpdateConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetEntityPageLayouts request
+	GetEntityPageLayouts(ctx context.Context, orgId string, portalName string, params *GetEntityPageLayoutsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// CreateEntityPageLayoutWithBody request with any body
+	CreateEntityPageLayoutWithBody(ctx context.Context, orgId string, portalName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	CreateEntityPageLayout(ctx context.Context, orgId string, portalName string, body CreateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DeleteEntityPageLayout request
+	DeleteEntityPageLayout(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetEntityPageLayout request
+	GetEntityPageLayout(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateEntityPageLayoutWithBody request with any body
+	UpdateEntityPageLayoutWithBody(ctx context.Context, orgId string, portalName string, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateEntityPageLayout(ctx context.Context, orgId string, portalName string, name string, body UpdateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetIntegrations request
 	GetIntegrations(ctx context.Context, orgId string, portalName string, params *GetIntegrationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2403,6 +2497,18 @@ type ClientInterface interface {
 
 	// GetTenantUser request
 	GetTenantUser(ctx context.Context, orgId string, tenantName string, username string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPortalVersions request
+	GetPortalVersions(ctx context.Context, params *GetPortalVersionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPortalVersion request
+	GetPortalVersion(ctx context.Context, versionId string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPortalVersionPluginDefinitions request
+	GetPortalVersionPluginDefinitions(ctx context.Context, versionId string, params *GetPortalVersionPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPortalVersionPluginDefinition request
+	GetPortalVersionPluginDefinition(ctx context.Context, versionId string, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetClusters(ctx context.Context, params *GetClustersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2503,90 +2609,6 @@ func (c *Client) UpdateOrganizationByIDWithBody(ctx context.Context, orgId strin
 
 func (c *Client) UpdateOrganizationByID(ctx context.Context, orgId string, body UpdateOrganizationByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateOrganizationByIDRequest(c.Server, orgId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetPluginDefinitions(ctx context.Context, orgId string, params *GetPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPluginDefinitionsRequest(c.Server, orgId, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreatePluginDefinitionWithBody(ctx context.Context, orgId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreatePluginDefinitionRequestWithBody(c.Server, orgId, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) CreatePluginDefinition(ctx context.Context, orgId string, body CreatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreatePluginDefinitionRequest(c.Server, orgId, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeletePluginDefinition(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeletePluginDefinitionRequest(c.Server, orgId, name, version)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetPluginDefinition(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPluginDefinitionRequest(c.Server, orgId, name, version)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdatePluginDefinitionWithBody(ctx context.Context, orgId string, name string, version int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdatePluginDefinitionRequestWithBody(c.Server, orgId, name, version, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) UpdatePluginDefinition(ctx context.Context, orgId string, name string, version int, body UpdatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUpdatePluginDefinitionRequest(c.Server, orgId, name, version, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2923,6 +2945,90 @@ func (c *Client) UpdateConnectionWithBody(ctx context.Context, orgId string, por
 
 func (c *Client) UpdateConnection(ctx context.Context, orgId string, portalName string, name string, body UpdateConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateConnectionRequest(c.Server, orgId, portalName, name, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetEntityPageLayouts(ctx context.Context, orgId string, portalName string, params *GetEntityPageLayoutsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetEntityPageLayoutsRequest(c.Server, orgId, portalName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateEntityPageLayoutWithBody(ctx context.Context, orgId string, portalName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateEntityPageLayoutRequestWithBody(c.Server, orgId, portalName, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) CreateEntityPageLayout(ctx context.Context, orgId string, portalName string, body CreateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateEntityPageLayoutRequest(c.Server, orgId, portalName, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeleteEntityPageLayout(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteEntityPageLayoutRequest(c.Server, orgId, portalName, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetEntityPageLayout(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetEntityPageLayoutRequest(c.Server, orgId, portalName, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateEntityPageLayoutWithBody(ctx context.Context, orgId string, portalName string, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateEntityPageLayoutRequestWithBody(c.Server, orgId, portalName, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateEntityPageLayout(ctx context.Context, orgId string, portalName string, name string, body UpdateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateEntityPageLayoutRequest(c.Server, orgId, portalName, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3425,6 +3531,54 @@ func (c *Client) GetTenantUser(ctx context.Context, orgId string, tenantName str
 	return c.Client.Do(req)
 }
 
+func (c *Client) GetPortalVersions(ctx context.Context, params *GetPortalVersionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPortalVersionsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPortalVersion(ctx context.Context, versionId string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPortalVersionRequest(c.Server, versionId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPortalVersionPluginDefinitions(ctx context.Context, versionId string, params *GetPortalVersionPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPortalVersionPluginDefinitionsRequest(c.Server, versionId, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPortalVersionPluginDefinition(ctx context.Context, versionId string, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPortalVersionPluginDefinitionRequest(c.Server, versionId, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // NewGetClustersRequest generates requests for GetClusters
 func NewGetClustersRequest(server string, params *GetClustersParams) (*http.Request, error) {
 	var err error
@@ -3789,298 +3943,6 @@ func NewUpdateOrganizationByIDRequestWithBody(server string, orgId string, conte
 	}
 
 	operationPath := fmt.Sprintf("/orgs/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetPluginDefinitionsRequest generates requests for GetPluginDefinitions
-func NewGetPluginDefinitionsRequest(server string, orgId string, params *GetPluginDefinitionsParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/orgs/%s/plugindefinitions", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if params.Limit != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Prev != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prev", runtime.ParamLocationQuery, *params.Prev); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Next != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "next", runtime.ParamLocationQuery, *params.Next); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewCreatePluginDefinitionRequest calls the generic CreatePluginDefinition builder with application/json body
-func NewCreatePluginDefinitionRequest(server string, orgId string, body CreatePluginDefinitionJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewCreatePluginDefinitionRequestWithBody(server, orgId, "application/json", bodyReader)
-}
-
-// NewCreatePluginDefinitionRequestWithBody generates requests for CreatePluginDefinition with any type of body
-func NewCreatePluginDefinitionRequestWithBody(server string, orgId string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/orgs/%s/plugindefinitions", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeletePluginDefinitionRequest generates requests for DeletePluginDefinition
-func NewDeletePluginDefinitionRequest(server string, orgId string, name string, version int) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/orgs/%s/plugindefinitions/%s/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetPluginDefinitionRequest generates requests for GetPluginDefinition
-func NewGetPluginDefinitionRequest(server string, orgId string, name string, version int) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/orgs/%s/plugindefinitions/%s/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewUpdatePluginDefinitionRequest calls the generic UpdatePluginDefinition builder with application/json body
-func NewUpdatePluginDefinitionRequest(server string, orgId string, name string, version int, body UpdatePluginDefinitionJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUpdatePluginDefinitionRequestWithBody(server, orgId, name, version, "application/json", bodyReader)
-}
-
-// NewUpdatePluginDefinitionRequestWithBody generates requests for UpdatePluginDefinition with any type of body
-func NewUpdatePluginDefinitionRequestWithBody(server string, orgId string, name string, version int, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "version", runtime.ParamLocationPath, version)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/orgs/%s/plugindefinitions/%s/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -5270,6 +5132,312 @@ func NewUpdateConnectionRequestWithBody(server string, orgId string, portalName 
 	}
 
 	operationPath := fmt.Sprintf("/orgs/%s/portals/%s/connections/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetEntityPageLayoutsRequest generates requests for GetEntityPageLayouts
+func NewGetEntityPageLayoutsRequest(server string, orgId string, portalName string, params *GetEntityPageLayoutsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "portalName", runtime.ParamLocationPath, portalName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orgs/%s/portals/%s/entitypagelayouts", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Prev != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prev", runtime.ParamLocationQuery, *params.Prev); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Next != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "next", runtime.ParamLocationQuery, *params.Next); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateEntityPageLayoutRequest calls the generic CreateEntityPageLayout builder with application/json body
+func NewCreateEntityPageLayoutRequest(server string, orgId string, portalName string, body CreateEntityPageLayoutJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateEntityPageLayoutRequestWithBody(server, orgId, portalName, "application/json", bodyReader)
+}
+
+// NewCreateEntityPageLayoutRequestWithBody generates requests for CreateEntityPageLayout with any type of body
+func NewCreateEntityPageLayoutRequestWithBody(server string, orgId string, portalName string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "portalName", runtime.ParamLocationPath, portalName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orgs/%s/portals/%s/entitypagelayouts", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteEntityPageLayoutRequest generates requests for DeleteEntityPageLayout
+func NewDeleteEntityPageLayoutRequest(server string, orgId string, portalName string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "portalName", runtime.ParamLocationPath, portalName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orgs/%s/portals/%s/entitypagelayouts/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetEntityPageLayoutRequest generates requests for GetEntityPageLayout
+func NewGetEntityPageLayoutRequest(server string, orgId string, portalName string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "portalName", runtime.ParamLocationPath, portalName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orgs/%s/portals/%s/entitypagelayouts/%s", pathParam0, pathParam1, pathParam2)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateEntityPageLayoutRequest calls the generic UpdateEntityPageLayout builder with application/json body
+func NewUpdateEntityPageLayoutRequest(server string, orgId string, portalName string, name string, body UpdateEntityPageLayoutJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateEntityPageLayoutRequestWithBody(server, orgId, portalName, name, "application/json", bodyReader)
+}
+
+// NewUpdateEntityPageLayoutRequestWithBody generates requests for UpdateEntityPageLayout with any type of body
+func NewUpdateEntityPageLayoutRequestWithBody(server string, orgId string, portalName string, name string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgId", runtime.ParamLocationPath, orgId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "portalName", runtime.ParamLocationPath, portalName)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam2 string
+
+	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/orgs/%s/portals/%s/entitypagelayouts/%s", pathParam0, pathParam1, pathParam2)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7070,6 +7238,250 @@ func NewGetTenantUserRequest(server string, orgId string, tenantName string, use
 	return req, nil
 }
 
+// NewGetPortalVersionsRequest generates requests for GetPortalVersions
+func NewGetPortalVersionsRequest(server string, params *GetPortalVersionsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/versions")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Prev != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prev", runtime.ParamLocationQuery, *params.Prev); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Next != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "next", runtime.ParamLocationQuery, *params.Next); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPortalVersionRequest generates requests for GetPortalVersion
+func NewGetPortalVersionRequest(server string, versionId string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "versionId", runtime.ParamLocationPath, versionId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/versions/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPortalVersionPluginDefinitionsRequest generates requests for GetPortalVersionPluginDefinitions
+func NewGetPortalVersionPluginDefinitionsRequest(server string, versionId string, params *GetPortalVersionPluginDefinitionsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "versionId", runtime.ParamLocationPath, versionId)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/versions/%s/plugindefinitions", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "limit", runtime.ParamLocationQuery, *params.Limit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Prev != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prev", runtime.ParamLocationQuery, *params.Prev); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Next != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "next", runtime.ParamLocationQuery, *params.Next); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPortalVersionPluginDefinitionRequest generates requests for GetPortalVersionPluginDefinition
+func NewGetPortalVersionPluginDefinitionRequest(server string, versionId string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "versionId", runtime.ParamLocationPath, versionId)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "name", runtime.ParamLocationPath, name)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/versions/%s/plugindefinitions/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -7137,25 +7549,6 @@ type ClientWithResponsesInterface interface {
 	UpdateOrganizationByIDWithBodyWithResponse(ctx context.Context, orgId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateOrganizationByIDResponse, error)
 
 	UpdateOrganizationByIDWithResponse(ctx context.Context, orgId string, body UpdateOrganizationByIDJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateOrganizationByIDResponse, error)
-
-	// GetPluginDefinitionsWithResponse request
-	GetPluginDefinitionsWithResponse(ctx context.Context, orgId string, params *GetPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*GetPluginDefinitionsResponse, error)
-
-	// CreatePluginDefinitionWithBodyWithResponse request with any body
-	CreatePluginDefinitionWithBodyWithResponse(ctx context.Context, orgId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePluginDefinitionResponse, error)
-
-	CreatePluginDefinitionWithResponse(ctx context.Context, orgId string, body CreatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePluginDefinitionResponse, error)
-
-	// DeletePluginDefinitionWithResponse request
-	DeletePluginDefinitionWithResponse(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*DeletePluginDefinitionResponse, error)
-
-	// GetPluginDefinitionWithResponse request
-	GetPluginDefinitionWithResponse(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*GetPluginDefinitionResponse, error)
-
-	// UpdatePluginDefinitionWithBodyWithResponse request with any body
-	UpdatePluginDefinitionWithBodyWithResponse(ctx context.Context, orgId string, name string, version int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePluginDefinitionResponse, error)
-
-	UpdatePluginDefinitionWithResponse(ctx context.Context, orgId string, name string, version int, body UpdatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePluginDefinitionResponse, error)
 
 	// GetPortalsWithResponse request
 	GetPortalsWithResponse(ctx context.Context, orgId string, params *GetPortalsParams, reqEditors ...RequestEditorFn) (*GetPortalsResponse, error)
@@ -7232,6 +7625,25 @@ type ClientWithResponsesInterface interface {
 	UpdateConnectionWithBodyWithResponse(ctx context.Context, orgId string, portalName string, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateConnectionResponse, error)
 
 	UpdateConnectionWithResponse(ctx context.Context, orgId string, portalName string, name string, body UpdateConnectionJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateConnectionResponse, error)
+
+	// GetEntityPageLayoutsWithResponse request
+	GetEntityPageLayoutsWithResponse(ctx context.Context, orgId string, portalName string, params *GetEntityPageLayoutsParams, reqEditors ...RequestEditorFn) (*GetEntityPageLayoutsResponse, error)
+
+	// CreateEntityPageLayoutWithBodyWithResponse request with any body
+	CreateEntityPageLayoutWithBodyWithResponse(ctx context.Context, orgId string, portalName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEntityPageLayoutResponse, error)
+
+	CreateEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, body CreateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEntityPageLayoutResponse, error)
+
+	// DeleteEntityPageLayoutWithResponse request
+	DeleteEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*DeleteEntityPageLayoutResponse, error)
+
+	// GetEntityPageLayoutWithResponse request
+	GetEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*GetEntityPageLayoutResponse, error)
+
+	// UpdateEntityPageLayoutWithBodyWithResponse request with any body
+	UpdateEntityPageLayoutWithBodyWithResponse(ctx context.Context, orgId string, portalName string, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEntityPageLayoutResponse, error)
+
+	UpdateEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, name string, body UpdateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateEntityPageLayoutResponse, error)
 
 	// GetIntegrationsWithResponse request
 	GetIntegrationsWithResponse(ctx context.Context, orgId string, portalName string, params *GetIntegrationsParams, reqEditors ...RequestEditorFn) (*GetIntegrationsResponse, error)
@@ -7344,6 +7756,18 @@ type ClientWithResponsesInterface interface {
 
 	// GetTenantUserWithResponse request
 	GetTenantUserWithResponse(ctx context.Context, orgId string, tenantName string, username string, reqEditors ...RequestEditorFn) (*GetTenantUserResponse, error)
+
+	// GetPortalVersionsWithResponse request
+	GetPortalVersionsWithResponse(ctx context.Context, params *GetPortalVersionsParams, reqEditors ...RequestEditorFn) (*GetPortalVersionsResponse, error)
+
+	// GetPortalVersionWithResponse request
+	GetPortalVersionWithResponse(ctx context.Context, versionId string, reqEditors ...RequestEditorFn) (*GetPortalVersionResponse, error)
+
+	// GetPortalVersionPluginDefinitionsWithResponse request
+	GetPortalVersionPluginDefinitionsWithResponse(ctx context.Context, versionId string, params *GetPortalVersionPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*GetPortalVersionPluginDefinitionsResponse, error)
+
+	// GetPortalVersionPluginDefinitionWithResponse request
+	GetPortalVersionPluginDefinitionWithResponse(ctx context.Context, versionId string, name string, reqEditors ...RequestEditorFn) (*GetPortalVersionPluginDefinitionResponse, error)
 }
 
 type GetClustersResponse struct {
@@ -7493,115 +7917,6 @@ func (r UpdateOrganizationByIDResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateOrganizationByIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetPluginDefinitionsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *PluginDefinitionsListResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetPluginDefinitionsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetPluginDefinitionsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type CreatePluginDefinitionResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *PluginDefinition
-}
-
-// Status returns HTTPResponse.Status
-func (r CreatePluginDefinitionResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r CreatePluginDefinitionResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeletePluginDefinitionResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r DeletePluginDefinitionResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeletePluginDefinitionResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetPluginDefinitionResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *PluginDefinition
-}
-
-// Status returns HTTPResponse.Status
-func (r GetPluginDefinitionResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetPluginDefinitionResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type UpdatePluginDefinitionResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *PluginDefinition
-}
-
-// Status returns HTTPResponse.Status
-func (r UpdatePluginDefinitionResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r UpdatePluginDefinitionResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8038,6 +8353,115 @@ func (r UpdateConnectionResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r UpdateConnectionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetEntityPageLayoutsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EntityPageLayoutsListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetEntityPageLayoutsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetEntityPageLayoutsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type CreateEntityPageLayoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON201      *EntityPageLayout
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateEntityPageLayoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateEntityPageLayoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type DeleteEntityPageLayoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteEntityPageLayoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteEntityPageLayoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetEntityPageLayoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EntityPageLayout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetEntityPageLayoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetEntityPageLayoutResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateEntityPageLayoutResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *EntityPageLayout
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateEntityPageLayoutResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateEntityPageLayoutResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8698,6 +9122,94 @@ func (r GetTenantUserResponse) StatusCode() int {
 	return 0
 }
 
+type GetPortalVersionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PortalVersionsListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPortalVersionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPortalVersionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPortalVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PortalVersion
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPortalVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPortalVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPortalVersionPluginDefinitionsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PluginDefinitionsListResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPortalVersionPluginDefinitionsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPortalVersionPluginDefinitionsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPortalVersionPluginDefinitionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PluginDefinition
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPortalVersionPluginDefinitionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPortalVersionPluginDefinitionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // GetClustersWithResponse request returning *GetClustersResponse
 func (c *ClientWithResponses) GetClustersWithResponse(ctx context.Context, params *GetClustersParams, reqEditors ...RequestEditorFn) (*GetClustersResponse, error) {
 	rsp, err := c.GetClusters(ctx, params, reqEditors...)
@@ -8775,67 +9287,6 @@ func (c *ClientWithResponses) UpdateOrganizationByIDWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseUpdateOrganizationByIDResponse(rsp)
-}
-
-// GetPluginDefinitionsWithResponse request returning *GetPluginDefinitionsResponse
-func (c *ClientWithResponses) GetPluginDefinitionsWithResponse(ctx context.Context, orgId string, params *GetPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*GetPluginDefinitionsResponse, error) {
-	rsp, err := c.GetPluginDefinitions(ctx, orgId, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetPluginDefinitionsResponse(rsp)
-}
-
-// CreatePluginDefinitionWithBodyWithResponse request with arbitrary body returning *CreatePluginDefinitionResponse
-func (c *ClientWithResponses) CreatePluginDefinitionWithBodyWithResponse(ctx context.Context, orgId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreatePluginDefinitionResponse, error) {
-	rsp, err := c.CreatePluginDefinitionWithBody(ctx, orgId, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreatePluginDefinitionResponse(rsp)
-}
-
-func (c *ClientWithResponses) CreatePluginDefinitionWithResponse(ctx context.Context, orgId string, body CreatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*CreatePluginDefinitionResponse, error) {
-	rsp, err := c.CreatePluginDefinition(ctx, orgId, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreatePluginDefinitionResponse(rsp)
-}
-
-// DeletePluginDefinitionWithResponse request returning *DeletePluginDefinitionResponse
-func (c *ClientWithResponses) DeletePluginDefinitionWithResponse(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*DeletePluginDefinitionResponse, error) {
-	rsp, err := c.DeletePluginDefinition(ctx, orgId, name, version, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeletePluginDefinitionResponse(rsp)
-}
-
-// GetPluginDefinitionWithResponse request returning *GetPluginDefinitionResponse
-func (c *ClientWithResponses) GetPluginDefinitionWithResponse(ctx context.Context, orgId string, name string, version int, reqEditors ...RequestEditorFn) (*GetPluginDefinitionResponse, error) {
-	rsp, err := c.GetPluginDefinition(ctx, orgId, name, version, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetPluginDefinitionResponse(rsp)
-}
-
-// UpdatePluginDefinitionWithBodyWithResponse request with arbitrary body returning *UpdatePluginDefinitionResponse
-func (c *ClientWithResponses) UpdatePluginDefinitionWithBodyWithResponse(ctx context.Context, orgId string, name string, version int, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePluginDefinitionResponse, error) {
-	rsp, err := c.UpdatePluginDefinitionWithBody(ctx, orgId, name, version, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdatePluginDefinitionResponse(rsp)
-}
-
-func (c *ClientWithResponses) UpdatePluginDefinitionWithResponse(ctx context.Context, orgId string, name string, version int, body UpdatePluginDefinitionJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePluginDefinitionResponse, error) {
-	rsp, err := c.UpdatePluginDefinition(ctx, orgId, name, version, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUpdatePluginDefinitionResponse(rsp)
 }
 
 // GetPortalsWithResponse request returning *GetPortalsResponse
@@ -9080,6 +9531,67 @@ func (c *ClientWithResponses) UpdateConnectionWithResponse(ctx context.Context, 
 		return nil, err
 	}
 	return ParseUpdateConnectionResponse(rsp)
+}
+
+// GetEntityPageLayoutsWithResponse request returning *GetEntityPageLayoutsResponse
+func (c *ClientWithResponses) GetEntityPageLayoutsWithResponse(ctx context.Context, orgId string, portalName string, params *GetEntityPageLayoutsParams, reqEditors ...RequestEditorFn) (*GetEntityPageLayoutsResponse, error) {
+	rsp, err := c.GetEntityPageLayouts(ctx, orgId, portalName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetEntityPageLayoutsResponse(rsp)
+}
+
+// CreateEntityPageLayoutWithBodyWithResponse request with arbitrary body returning *CreateEntityPageLayoutResponse
+func (c *ClientWithResponses) CreateEntityPageLayoutWithBodyWithResponse(ctx context.Context, orgId string, portalName string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEntityPageLayoutResponse, error) {
+	rsp, err := c.CreateEntityPageLayoutWithBody(ctx, orgId, portalName, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEntityPageLayoutResponse(rsp)
+}
+
+func (c *ClientWithResponses) CreateEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, body CreateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEntityPageLayoutResponse, error) {
+	rsp, err := c.CreateEntityPageLayout(ctx, orgId, portalName, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEntityPageLayoutResponse(rsp)
+}
+
+// DeleteEntityPageLayoutWithResponse request returning *DeleteEntityPageLayoutResponse
+func (c *ClientWithResponses) DeleteEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*DeleteEntityPageLayoutResponse, error) {
+	rsp, err := c.DeleteEntityPageLayout(ctx, orgId, portalName, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteEntityPageLayoutResponse(rsp)
+}
+
+// GetEntityPageLayoutWithResponse request returning *GetEntityPageLayoutResponse
+func (c *ClientWithResponses) GetEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, name string, reqEditors ...RequestEditorFn) (*GetEntityPageLayoutResponse, error) {
+	rsp, err := c.GetEntityPageLayout(ctx, orgId, portalName, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetEntityPageLayoutResponse(rsp)
+}
+
+// UpdateEntityPageLayoutWithBodyWithResponse request with arbitrary body returning *UpdateEntityPageLayoutResponse
+func (c *ClientWithResponses) UpdateEntityPageLayoutWithBodyWithResponse(ctx context.Context, orgId string, portalName string, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateEntityPageLayoutResponse, error) {
+	rsp, err := c.UpdateEntityPageLayoutWithBody(ctx, orgId, portalName, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateEntityPageLayoutResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateEntityPageLayoutWithResponse(ctx context.Context, orgId string, portalName string, name string, body UpdateEntityPageLayoutJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateEntityPageLayoutResponse, error) {
+	rsp, err := c.UpdateEntityPageLayout(ctx, orgId, portalName, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateEntityPageLayoutResponse(rsp)
 }
 
 // GetIntegrationsWithResponse request returning *GetIntegrationsResponse
@@ -9440,6 +9952,42 @@ func (c *ClientWithResponses) GetTenantUserWithResponse(ctx context.Context, org
 	return ParseGetTenantUserResponse(rsp)
 }
 
+// GetPortalVersionsWithResponse request returning *GetPortalVersionsResponse
+func (c *ClientWithResponses) GetPortalVersionsWithResponse(ctx context.Context, params *GetPortalVersionsParams, reqEditors ...RequestEditorFn) (*GetPortalVersionsResponse, error) {
+	rsp, err := c.GetPortalVersions(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPortalVersionsResponse(rsp)
+}
+
+// GetPortalVersionWithResponse request returning *GetPortalVersionResponse
+func (c *ClientWithResponses) GetPortalVersionWithResponse(ctx context.Context, versionId string, reqEditors ...RequestEditorFn) (*GetPortalVersionResponse, error) {
+	rsp, err := c.GetPortalVersion(ctx, versionId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPortalVersionResponse(rsp)
+}
+
+// GetPortalVersionPluginDefinitionsWithResponse request returning *GetPortalVersionPluginDefinitionsResponse
+func (c *ClientWithResponses) GetPortalVersionPluginDefinitionsWithResponse(ctx context.Context, versionId string, params *GetPortalVersionPluginDefinitionsParams, reqEditors ...RequestEditorFn) (*GetPortalVersionPluginDefinitionsResponse, error) {
+	rsp, err := c.GetPortalVersionPluginDefinitions(ctx, versionId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPortalVersionPluginDefinitionsResponse(rsp)
+}
+
+// GetPortalVersionPluginDefinitionWithResponse request returning *GetPortalVersionPluginDefinitionResponse
+func (c *ClientWithResponses) GetPortalVersionPluginDefinitionWithResponse(ctx context.Context, versionId string, name string, reqEditors ...RequestEditorFn) (*GetPortalVersionPluginDefinitionResponse, error) {
+	rsp, err := c.GetPortalVersionPluginDefinition(ctx, versionId, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPortalVersionPluginDefinitionResponse(rsp)
+}
+
 // ParseGetClustersResponse parses an HTTP response from a GetClustersWithResponse call
 func ParseGetClustersResponse(rsp *http.Response) (*GetClustersResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -9602,126 +10150,6 @@ func ParseUpdateOrganizationByIDResponse(rsp *http.Response) (*UpdateOrganizatio
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Organization
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetPluginDefinitionsResponse parses an HTTP response from a GetPluginDefinitionsWithResponse call
-func ParseGetPluginDefinitionsResponse(rsp *http.Response) (*GetPluginDefinitionsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetPluginDefinitionsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest PluginDefinitionsListResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseCreatePluginDefinitionResponse parses an HTTP response from a CreatePluginDefinitionWithResponse call
-func ParseCreatePluginDefinitionResponse(rsp *http.Response) (*CreatePluginDefinitionResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &CreatePluginDefinitionResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest PluginDefinition
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeletePluginDefinitionResponse parses an HTTP response from a DeletePluginDefinitionWithResponse call
-func ParseDeletePluginDefinitionResponse(rsp *http.Response) (*DeletePluginDefinitionResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeletePluginDefinitionResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseGetPluginDefinitionResponse parses an HTTP response from a GetPluginDefinitionWithResponse call
-func ParseGetPluginDefinitionResponse(rsp *http.Response) (*GetPluginDefinitionResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetPluginDefinitionResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest PluginDefinition
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseUpdatePluginDefinitionResponse parses an HTTP response from a UpdatePluginDefinitionWithResponse call
-func ParseUpdatePluginDefinitionResponse(rsp *http.Response) (*UpdatePluginDefinitionResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &UpdatePluginDefinitionResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest PluginDefinition
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -10202,6 +10630,126 @@ func ParseUpdateConnectionResponse(rsp *http.Response) (*UpdateConnectionRespons
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest Connection
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetEntityPageLayoutsResponse parses an HTTP response from a GetEntityPageLayoutsWithResponse call
+func ParseGetEntityPageLayoutsResponse(rsp *http.Response) (*GetEntityPageLayoutsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetEntityPageLayoutsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EntityPageLayoutsListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateEntityPageLayoutResponse parses an HTTP response from a CreateEntityPageLayoutWithResponse call
+func ParseCreateEntityPageLayoutResponse(rsp *http.Response) (*CreateEntityPageLayoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateEntityPageLayoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest EntityPageLayout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteEntityPageLayoutResponse parses an HTTP response from a DeleteEntityPageLayoutWithResponse call
+func ParseDeleteEntityPageLayoutResponse(rsp *http.Response) (*DeleteEntityPageLayoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteEntityPageLayoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
+// ParseGetEntityPageLayoutResponse parses an HTTP response from a GetEntityPageLayoutWithResponse call
+func ParseGetEntityPageLayoutResponse(rsp *http.Response) (*GetEntityPageLayoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetEntityPageLayoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EntityPageLayout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateEntityPageLayoutResponse parses an HTTP response from a UpdateEntityPageLayoutWithResponse call
+func ParseUpdateEntityPageLayoutResponse(rsp *http.Response) (*UpdateEntityPageLayoutResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateEntityPageLayoutResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest EntityPageLayout
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -10922,6 +11470,110 @@ func ParseGetTenantUserResponse(rsp *http.Response) (*GetTenantUserResponse, err
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest TenantUser
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPortalVersionsResponse parses an HTTP response from a GetPortalVersionsWithResponse call
+func ParseGetPortalVersionsResponse(rsp *http.Response) (*GetPortalVersionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPortalVersionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PortalVersionsListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPortalVersionResponse parses an HTTP response from a GetPortalVersionWithResponse call
+func ParseGetPortalVersionResponse(rsp *http.Response) (*GetPortalVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPortalVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PortalVersion
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPortalVersionPluginDefinitionsResponse parses an HTTP response from a GetPortalVersionPluginDefinitionsWithResponse call
+func ParseGetPortalVersionPluginDefinitionsResponse(rsp *http.Response) (*GetPortalVersionPluginDefinitionsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPortalVersionPluginDefinitionsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PluginDefinitionsListResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPortalVersionPluginDefinitionResponse parses an HTTP response from a GetPortalVersionPluginDefinitionWithResponse call
+func ParseGetPortalVersionPluginDefinitionResponse(rsp *http.Response) (*GetPortalVersionPluginDefinitionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPortalVersionPluginDefinitionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PluginDefinition
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
